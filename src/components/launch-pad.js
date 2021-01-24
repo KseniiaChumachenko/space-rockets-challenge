@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
-import { MapPin, Navigation } from "react-feather";
+import { MapPin, Navigation, Star } from "react-feather";
 import {
   Flex,
   Heading,
@@ -14,13 +15,20 @@ import {
   Text,
   Spinner,
   Stack,
-  AspectRatioBox,
-} from "@chakra-ui/core";
+  AspectRatio,
+} from "@chakra-ui/react";
 
+import { useIsFavourite } from "../utils/use-is-favourite";
+import {
+  FAVOURITES_ACTION_TYPE_ADDED,
+  FAVOURITES_ACTION_TYPE_DELETED,
+} from "../features/favourites/reducer";
+import { entityPropsFactory } from "../utils/entity/entity-props-factory";
 import { useSpaceX } from "../utils/use-space-x";
+import { ENTITY_NAME_LAUNCH_PADS, ENTITY_NAME_LAUNCHES } from "../constants";
 import Error from "./error";
 import Breadcrumbs from "./breadcrumbs";
-import { LaunchItem } from "./launches";
+import { ItemCard } from "./item-card";
 
 export default function LaunchPad() {
   let { launchPadId } = useParams();
@@ -64,13 +72,35 @@ export default function LaunchPad() {
   );
 }
 
-const randomColor = (start = 200, end = 250) =>
+const randomColorGenerator = (start = 200, end = 250) =>
   `hsl(${start + end * Math.random()}, 80%, 90%)`;
 
 function Header({ launchPad }) {
+  const dispatch = useDispatch();
+  const isFavourite = useIsFavourite(
+    ENTITY_NAME_LAUNCH_PADS,
+    launchPad.site_id
+  );
+
+  const [color1, color2] = useMemo(() => {
+    return [randomColorGenerator(), randomColorGenerator()];
+  }, []);
+
+  const handleFavouritesAction = (type) => (e) => {
+    e.preventDefault();
+    dispatch({
+      type,
+      payload: { entityName: ENTITY_NAME_LAUNCH_PADS, id: launchPad.site_id },
+    });
+  };
+
+  const handleAddToFavourite = handleFavouritesAction(
+    isFavourite ? FAVOURITES_ACTION_TYPE_DELETED : FAVOURITES_ACTION_TYPE_ADDED
+  );
+
   return (
     <Flex
-      background={`linear-gradient(${randomColor()}, ${randomColor()})`}
+      background={`linear-gradient(${color1}, ${color2})`}
       bgPos="center"
       bgSize="cover"
       bgRepeat="no-repeat"
@@ -78,7 +108,6 @@ function Header({ launchPad }) {
       position="relative"
       flexDirection={["column", "row"]}
       p={[2, 6]}
-      alignItems="flex-end"
       justifyContent="space-between"
     >
       <Heading
@@ -91,21 +120,34 @@ function Header({ launchPad }) {
       >
         {launchPad.site_name_long}
       </Heading>
-      <Stack isInline spacing="3">
-        <Badge variantColor="purple" fontSize={["sm", "md"]}>
-          {launchPad.successful_launches}/{launchPad.attempted_launches}{" "}
-          successful
-        </Badge>
-        {launchPad.stats === "active" ? (
-          <Badge variantColor="green" fontSize={["sm", "md"]}>
-            Active
+      <Flex direction={"column"} justifyContent="space-between">
+        <Box
+          alignSelf={"flex-end"}
+          as={Star}
+          width="2em"
+          height="2em"
+          onClick={handleAddToFavourite}
+          color={isFavourite && "orange.300"}
+          bg={"gray.200"}
+          borderRadius={"2px"}
+          p={1}
+        />
+        <Stack isInline spacing="3">
+          <Badge colorScheme="purple" fontSize={["sm", "md"]}>
+            {launchPad.successful_launches}/{launchPad.attempted_launches}{" "}
+            successful
           </Badge>
-        ) : (
-          <Badge variantColor="red" fontSize={["sm", "md"]}>
-            Retired
-          </Badge>
-        )}
-      </Stack>
+          {launchPad.stats === "active" ? (
+            <Badge colorScheme="green" fontSize={["sm", "md"]}>
+              Active
+            </Badge>
+          ) : (
+            <Badge colorScheme="red" fontSize={["sm", "md"]}>
+              Retired
+            </Badge>
+          )}
+        </Stack>
+      </Flex>
     </Flex>
   );
 }
@@ -140,13 +182,13 @@ function LocationAndVehicles({ launchPad }) {
 
 function Map({ location }) {
   return (
-    <AspectRatioBox ratio={16 / 5}>
+    <AspectRatio ratio={16 / 5}>
       <Box
         as="iframe"
         src={`https://maps.google.com/maps?q=${location.latitude}, ${location.longitude}&z=15&output=embed`}
         alt="demo"
       />
-    </AspectRatioBox>
+    </AspectRatio>
   );
 }
 
@@ -161,7 +203,11 @@ function RecentLaunches({ launches }) {
       </Text>
       <SimpleGrid minChildWidth="350px" spacing="4">
         {launches.map((launch) => (
-          <LaunchItem launch={launch} key={launch.flight_number} />
+          <ItemCard
+            key={launch.flight_number}
+            entityName={ENTITY_NAME_LAUNCHES}
+            {...entityPropsFactory[ENTITY_NAME_LAUNCHES](launch)}
+          />
         ))}
       </SimpleGrid>
     </Stack>

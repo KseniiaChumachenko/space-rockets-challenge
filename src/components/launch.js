@@ -1,7 +1,8 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { format as timeAgo } from "timeago.js";
-import { Watch, MapPin, Navigation, Layers } from "react-feather";
+import { Watch, MapPin, Navigation, Layers, Star } from "react-feather";
 import {
   Flex,
   Heading,
@@ -17,13 +18,19 @@ import {
   Image,
   Link,
   Stack,
-  AspectRatioBox,
+  AspectRatio,
   StatGroup,
   Tooltip,
-} from "@chakra-ui/core";
+} from "@chakra-ui/react";
 
+import {
+  FAVOURITES_ACTION_TYPE_ADDED,
+  FAVOURITES_ACTION_TYPE_DELETED,
+} from "../features/favourites/reducer";
 import { useSpaceX } from "../utils/use-space-x";
+import { useIsFavourite } from "../utils/use-is-favourite";
 import { formatDateTime, formatLocalDateTime } from "../utils/format-date";
+import { ENTITY_NAME_LAUNCHES } from "../constants";
 import Error from "./error";
 import Breadcrumbs from "./breadcrumbs";
 
@@ -64,6 +71,24 @@ export default function Launch() {
 }
 
 function Header({ launch }) {
+  const dispatch = useDispatch();
+  const isFavourite = useIsFavourite(
+    ENTITY_NAME_LAUNCHES,
+    launch.flight_number
+  );
+
+  const handleFavouritesAction = (type) => (e) => {
+    e.preventDefault();
+    dispatch({
+      type,
+      payload: { entityName: ENTITY_NAME_LAUNCHES, id: launch.flight_number },
+    });
+  };
+
+  const handleAddToFavourite = handleFavouritesAction(
+    isFavourite ? FAVOURITES_ACTION_TYPE_DELETED : FAVOURITES_ACTION_TYPE_ADDED
+  );
+
   return (
     <Flex
       bgImage={`url(${launch.links.flickr_images[0]})`}
@@ -73,7 +98,6 @@ function Header({ launch }) {
       minHeight="30vh"
       position="relative"
       p={[2, 6]}
-      alignItems="flex-end"
       justifyContent="space-between"
     >
       <Image
@@ -93,23 +117,37 @@ function Header({ launch }) {
         px="4"
         py="2"
         borderRadius="lg"
+        alignSelf={"flex-end"}
       >
         {launch.mission_name}
       </Heading>
-      <Stack isInline spacing="3">
-        <Badge variantColor="purple" fontSize={["xs", "md"]}>
-          #{launch.flight_number}
-        </Badge>
-        {launch.launch_success ? (
-          <Badge variantColor="green" fontSize={["xs", "md"]}>
-            Successful
+      <Flex flexDirection={"column"} justifyContent={"space-between"}>
+        <Box
+          alignSelf={"flex-end"}
+          as={Star}
+          width="2em"
+          height="2em"
+          onClick={handleAddToFavourite}
+          color={isFavourite && "orange.300"}
+          bg={"gray.200"}
+          borderRadius={"2px"}
+          p={1}
+        />
+        <Stack isInline spacing="3">
+          <Badge colorScheme="purple" fontSize={["xs", "md"]}>
+            #{launch.flight_number}
           </Badge>
-        ) : (
-          <Badge variantColor="red" fontSize={["xs", "md"]}>
-            Failed
-          </Badge>
-        )}
-      </Stack>
+          {launch.launch_success ? (
+            <Badge colorScheme="green" fontSize={["xs", "md"]}>
+              Successful
+            </Badge>
+          ) : (
+            <Badge colorScheme="red" fontSize={["xs", "md"]}>
+              Failed
+            </Badge>
+          )}
+        </Stack>
+      </Flex>
     </Flex>
   );
 }
@@ -126,10 +164,12 @@ function TimeAndLocation({ launch }) {
         </StatLabel>
         <StatNumber fontSize={["md", "xl"]}>
           <Tooltip
-              aria-label={'user-timezone-launch-date'}
-              label={'In your local time: ' + formatDateTime(launch.launch_date_local)}
+            aria-label={"user-timezone-launch-date"}
+            label={
+              "In your local time: " + formatDateTime(launch.launch_date_local)
+            }
           >
-           {formatLocalDateTime(launch.launch_date_local)}
+            {formatLocalDateTime(launch.launch_date_local)}
           </Tooltip>
         </StatNumber>
         <StatHelpText>{timeAgo(launch.launch_date_utc)}</StatHelpText>
@@ -144,7 +184,7 @@ function TimeAndLocation({ launch }) {
         <StatNumber fontSize={["md", "xl"]}>
           <Link
             as={RouterLink}
-            to={`/launch-pads/${launch.launch_site.site_id}`}
+            to={`/launchpads/${launch.launch_site.site_id}`}
           >
             {launch.launch_site.site_name_long}
           </Link>
@@ -221,14 +261,14 @@ function RocketInfo({ launch }) {
 
 function Video({ launch }) {
   return (
-    <AspectRatioBox maxH="400px" ratio={1.7}>
+    <AspectRatio maxH="400px" ratio={1.7}>
       <Box
         as="iframe"
         title={launch.mission_name}
         src={`https://www.youtube.com/embed/${launch.links.youtube_id}`}
         allowFullScreen
       />
-    </AspectRatioBox>
+    </AspectRatio>
   );
 }
 
