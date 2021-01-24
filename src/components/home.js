@@ -1,5 +1,5 @@
 import React from "react";
-import { Flex, Box, Text, Stack, Link } from "@chakra-ui/core";
+import { Flex, Box, Text, Stack, Link } from "@chakra-ui/react";
 import { ArrowRight } from "react-feather";
 import { Link as BrowserLink } from "react-router-dom";
 
@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <Stack m="6" spacing="6">
       <PageLink url="/launches">Browse SpaceX Launches</PageLink>
-      <PageLink url="/launch-pads">Browse SpaceX Launch Pads</PageLink>
+      <PageLink url="/launchpads">Browse SpaceX Launch Pads</PageLink>
     </Stack>
   );
 }

@@ -1,17 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { Provider } from 'react-redux'
 import { BrowserRouter as Router } from "react-router-dom";
-import { ThemeProvider, CSSReset } from "@chakra-ui/core";
+import { ChakraProvider, CSSReset } from "@chakra-ui/react";
 
 import App from "./components/app";
+import { store } from './store'
 
 ReactDOM.render(
   <React.StrictMode>
     <Router>
-      <ThemeProvider>
-        <CSSReset />
-        <App />
-      </ThemeProvider>
+      <ChakraProvider>
+          <Provider store={store}>
+            <CSSReset />
+            <App />
+          </Provider>
+      </ChakraProvider>
     </Router>
   </React.StrictMode>,
   document.getElementById("root")
