@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { SimpleGrid, Text, Spinner, Flex, Box } from "@chakra-ui/react";
 
-import { entityPropsFactory } from "../../utils/entity/entity-props-factory";
+import { useEntity } from "../../utils/entity/use-entity";
 import { useSpaceX } from "../../utils/use-space-x";
 import { FavouritesEmptyState } from "../../components/favourites-empty-state";
 import { Drawer } from "../../components/drawer";
@@ -38,6 +38,8 @@ export function Favourites(p) {
 function Favourite({ entityName, id, ...p }) {
   const { data, error } = useSpaceX(`/${entityName}/${id}`);
 
+  const { mapPropsToCard } = useEntity(entityName);
+
   if (error) {
     return <Error />;
   }
@@ -49,7 +51,5 @@ function Favourite({ entityName, id, ...p }) {
     );
   }
 
-  const cardProps = entityPropsFactory[entityName](data);
-
-  return <ItemCard {...cardProps} {...p} withFavourite={false} />;
+  return <ItemCard {...mapPropsToCard(data)} {...p} withFavourite={false} />;
 }

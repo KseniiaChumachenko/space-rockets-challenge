@@ -1,27 +1,31 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
-import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
+import { Routes, Route, Link } from "react-router-dom";
+import { Flex, Text, useDisclosure, List } from "@chakra-ui/react";
 import { Star } from "react-feather";
 
 import { Favourites } from "../features/favourites";
-import Launches from "./launches";
-import Launch from "./launch";
+import Listing from "../screens/listing";
+import Detail from "../screens/detail";
 import Home from "./home";
-import LaunchPads from "./launch-pads";
-import LaunchPad from "./launch-pad";
+import Error from "./error";
+import { Navigation } from "./navigation";
+import { Header } from "./header";
 
 export default function App() {
   return (
-    <div>
+    <Flex height={"100vh"}>
       <NavBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/launches" element={<Launches />} />
-        <Route path="/launches/:launchId" element={<Launch />} />
-        <Route path="/launchpads" element={<LaunchPads />} />
-        <Route path="/launchpads/:launchPadId" element={<LaunchPad />} />
-      </Routes>
-    </div>
+      <Flex overflow={"auto"} width={"100%"}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Header />}>
+            <Route path=":entityName" element={<Listing />} />
+            <Route path=":entityName/:id" element={<Detail />} />
+          </Route>
+          <Route path="*" element={<Error />} />
+        </Routes>
+      </Flex>
+    </Flex>
   );
 }
 
@@ -37,29 +41,36 @@ function NavBar() {
     <Flex
       as="nav"
       align="center"
-      justify="space-between"
+      flexDirection={"column"}
       wrap="wrap"
       padding="4"
       bg="gray.800"
       color="white"
     >
       <Text
+        as={Link}
+        to={"/"}
         fontFamily="mono"
         letterSpacing="2px"
         fontWeight="bold"
-        fontSize="lg"
+        fontSize="xl"
+        margin={4}
+        _hover={{ cursor: "pointer" }}
       >
         ¡SPACE·R0CKETS!
       </Text>
+      <List width={"100%"} mt={4}>
+        <Navigation
+          customRoutes={[
+            {
+              label: "Favourites",
+              icon: Star,
+              onClick: handleOpenFavourites,
+            },
+          ]}
+        />
+      </List>
 
-      <Button
-        variant={"ghost"}
-        onClick={handleOpenFavourites}
-        _hover={{ bg: "transparent" }}
-      >
-        <Box as={Star} size={"1em"} marginRight={1} />
-        Favourites
-      </Button>
       <Favourites {...disclosure} />
     </Flex>
   );

@@ -1,154 +1,35 @@
 import React from "react";
-import { useDispatch } from "react-redux";
-import { useParams, Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
+import { Layers, MapPin, Navigation, Watch } from "react-feather";
 import { format as timeAgo } from "timeago.js";
-import { Watch, MapPin, Navigation, Layers, Star } from "react-feather";
 import {
-  Flex,
-  Heading,
-  Badge,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  SimpleGrid,
+  AspectRatio,
   Box,
-  Text,
-  Spinner,
   Image,
   Link,
-  Stack,
-  AspectRatio,
+  SimpleGrid,
+  Stat,
   StatGroup,
+  StatHelpText,
+  StatLabel,
+  StatNumber,
+  Text,
   Tooltip,
 } from "@chakra-ui/react";
 
-import {
-  FAVOURITES_ACTION_TYPE_ADDED,
-  FAVOURITES_ACTION_TYPE_DELETED,
-} from "../features/favourites/reducer";
-import { useSpaceX } from "../utils/use-space-x";
-import { useIsFavourite } from "../utils/use-is-favourite";
-import { formatDateTime, formatLocalDateTime } from "../utils/format-date";
-import { ENTITY_NAME_LAUNCHES } from "../constants";
-import Error from "./error";
-import Breadcrumbs from "./breadcrumbs";
+import { formatDateTime, formatLocalDateTime } from "../../utils/format-date";
 
-export default function Launch() {
-  let { launchId } = useParams();
-  const { data: launch, error } = useSpaceX(`/launches/${launchId}`);
-
-  if (error) return <Error />;
-  if (!launch) {
-    return (
-      <Flex justifyContent="center" alignItems="center" minHeight="50vh">
-        <Spinner size="lg" />
-      </Flex>
-    );
-  }
-
+export function Launches(launch) {
   return (
-    <div>
-      <Breadcrumbs
-        items={[
-          { label: "Home", to: "/" },
-          { label: "Launches", to: ".." },
-          { label: `#${launch.flight_number}` },
-        ]}
-      />
-      <Header launch={launch} />
-      <Box m={[3, 6]}>
-        <TimeAndLocation launch={launch} />
-        <RocketInfo launch={launch} />
-        <Text color="gray.700" fontSize={["md", null, "lg"]} my="8">
-          {launch.details}
-        </Text>
-        <Video launch={launch} />
-        <Gallery images={launch.links.flickr_images} />
-      </Box>
-    </div>
-  );
-}
-
-function Header({ launch }) {
-  const dispatch = useDispatch();
-  const isFavourite = useIsFavourite(
-    ENTITY_NAME_LAUNCHES,
-    launch.flight_number
-  );
-
-  const handleFavouritesAction = (type) => (e) => {
-    e.preventDefault();
-    dispatch({
-      type,
-      payload: { entityName: ENTITY_NAME_LAUNCHES, id: launch.flight_number },
-    });
-  };
-
-  const handleAddToFavourite = handleFavouritesAction(
-    isFavourite ? FAVOURITES_ACTION_TYPE_DELETED : FAVOURITES_ACTION_TYPE_ADDED
-  );
-
-  return (
-    <Flex
-      bgImage={`url(${launch.links.flickr_images[0]})`}
-      bgPos="center"
-      bgSize="cover"
-      bgRepeat="no-repeat"
-      minHeight="30vh"
-      position="relative"
-      p={[2, 6]}
-      justifyContent="space-between"
-    >
-      <Image
-        position="absolute"
-        top="5"
-        right="5"
-        src={launch.links.mission_patch_small}
-        height={["85px", "150px"]}
-        objectFit="contain"
-        objectPosition="bottom"
-      />
-      <Heading
-        color="white"
-        display="inline"
-        backgroundColor="#718096b8"
-        fontSize={["lg", "5xl"]}
-        px="4"
-        py="2"
-        borderRadius="lg"
-        alignSelf={"flex-end"}
-      >
-        {launch.mission_name}
-      </Heading>
-      <Flex flexDirection={"column"} justifyContent={"space-between"}>
-        <Box
-          alignSelf={"flex-end"}
-          as={Star}
-          width="2em"
-          height="2em"
-          onClick={handleAddToFavourite}
-          color={isFavourite && "orange.300"}
-          bg={"gray.200"}
-          borderRadius={"2px"}
-          p={1}
-        />
-        <Stack isInline spacing="3">
-          <Badge colorScheme="purple" fontSize={["xs", "md"]}>
-            #{launch.flight_number}
-          </Badge>
-          {launch.launch_success ? (
-            <Badge colorScheme="green" fontSize={["xs", "md"]}>
-              Successful
-            </Badge>
-          ) : (
-            <Badge colorScheme="red" fontSize={["xs", "md"]}>
-              Failed
-            </Badge>
-          )}
-        </Stack>
-      </Flex>
-    </Flex>
+    <Box m={[3, 6]}>
+      <TimeAndLocation launch={launch} />
+      <RocketInfo launch={launch} />
+      <Text color="gray.700" fontSize={["md", null, "lg"]} my="8">
+        {launch.details}
+      </Text>
+      <Video launch={launch} />
+      <Gallery images={launch.links.flickr_images} />
+    </Box>
   );
 }
 
